@@ -3,6 +3,9 @@
 {% block head %}
     <title>Symbol Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <style>
         .form-container {
             padding: 2rem;
@@ -29,18 +32,71 @@
         input[type="submit"]:hover {
             background-color: #2563eb;
         }
+        /* Autocomplete styling */
+        .ui-autocomplete {
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 9999 !important;
+        }
+        .ui-menu-item {
+            padding: 5px;
+            font-size: 14px;
+        }
+        .ui-menu-item:hover {
+            background-color: #f0f9ff;
+            cursor: pointer;
+        }
+        .ui-helper-hidden-accessible {
+            display: none;
+        }
     </style>
+    <script>
+        $(document).ready(function() {
+            $("#symbol-input").autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "/search/suggestions",
+                        dataType: "json",
+                        data: {
+                            term: request.term,
+                            exchange: $("#exchange-select").val()
+                        },
+                        success: function(data) {
+                            response(data);
+                        }
+                    });
+                },
+                minLength: 1,
+                select: function(event, ui) {
+                    $("#symbol-input").val(ui.item.value);
+                    return false;
+                }
+            }).autocomplete("instance")._renderItem = function(ul, item) {
+                return $("<li>")
+                    .append("<div><strong>" + item.value + "</strong> - " + item.label.split(" - ")[1] + "</div>")
+                    .appendTo(ul);
+            };
+            
+            // Update suggestions when exchange changes
+            $("#exchange-select").change(function() {
+                if($("#symbol-input").val().length >= 1) {
+                    $("#symbol-input").autocomplete("search", $("#symbol-input").val());
+                }
+            });
+        });
+    </script>
 {% endblock %}
 
 {% block content %}
 <div class="form-container mx-auto my-8">
     <h1 class="text-xl font-bold mb-4">Symbol Search</h1>
     <form action="/search" method="get" class="flex flex-col gap-4">
-        <input type="text" name="symbol" placeholder="Enter symbol" required class="input text-sm border-gray-300 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm">
+        <input id="symbol-input" type="text" name="symbol" placeholder="Enter symbol" required class="input text-sm border-gray-300 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm">
         <!-- Exchange dropdown menu -->
-        <select name="exchange" required class="input text-sm border-gray-300 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm">
+        <select id="exchange-select" name="exchange" required class="input text-sm border-gray-300 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm">
             <option value="">Select Exchange</option>
-            <option value="NSE">NSE</option>
+            <option value="NSE" selected>NSE</option>
             <option value="NFO">NFO</option>
             <option value="BSE">BSE</option>
             <option value="BFO">BFO</option>

@@ -1,6 +1,11 @@
+
 # TM-ALGO - Take Control of Your Algo Platform
 
 TM-ALGO is an open-source, Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-ALGO facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
+=======
+# TM-Algo - Take Control of Your Algo Platform
+
+TM-Algo is an open-source, Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-Algo facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
 
 ## Supported Broker
 
@@ -12,6 +17,7 @@ TM-ALGO is an open-source, Flask-based Python application designed to bridge the
 - **User-Friendly Interface**: A straightforward Flask-based application interface accessible to traders of all levels of expertise.
 - **Real-Time Execution**: Implement your trading strategies in real time, ensuring immediate action to capitalize on market opportunities.
 - **Customizable Strategies**: Easily adapt and tailor your trading strategies to meet your specific needs, with extensive options for customization and automation.
+
 - **Secure and Reliable**: With a focus on security and reliability, TM-ALGO provides a dependable platform for your algotrading activities, safeguarding your data and trades.
 
 ## Documentation
@@ -25,6 +31,20 @@ We welcome contributions to TM-ALGO! If you're interested in improving the appli
 ## License
 
 TM-ALGO is released under the GPL V3.0 License. See the `LICENSE` file for more details.
+=======
+- **Secure and Reliable**: With a focus on security and reliability, TM-Algo provides a dependable platform for your algotrading activities, safeguarding your data and trades.
+
+## Documentation
+
+For detailed documentation on TM-Algo, including setup guides, API references, and usage examples, refer to [https://docs.TM-Algo.in](https://docs.TM-Algo.in)
+
+## Contributing
+
+We welcome contributions to TM-Algo! If you're interested in improving the application or adding new features, please feel free to fork the repository, make your changes, and submit a pull request.
+
+## License
+
+TM-Algo is released under the GPL V3.0 License. See the `LICENSE` file for more details.
 
 ## Contact
 
@@ -32,7 +52,10 @@ For support, feature requests, or to contribute further, please contact us via G
 
 ---
 
+
 # Getting Started with TM-ALGO
+=======
+# Getting Started with TM-Algo
 
 ## Installation Procedure
 
@@ -59,6 +82,18 @@ Windows users Navigate to the directory where TM-ALGO is cloned and execute:
 <code>pip install -r requirements.txt</code>
 
 Linux/Nginx users Navigate to the directory where TM-ALGO is cloned and execute:
+=======
+2. **Clone the Repository**: Open the VS Code Terminal and clone the TM-Algo repository with the command:
+
+<code>git clone https://github.com/marketcalls/TM-Algo</code>
+
+3. **Install Dependencies**: 
+
+Windows users Navigate to the directory where TM-Algo is cloned and execute:
+
+<code>pip install -r requirements.txt</code>
+
+Linux/Nginx users Navigate to the directory where TM-Algo is cloned and execute:
 <code>pip install -r requirements-nginx.txt</code>
 
 to install the necessary Python libraries.
@@ -66,13 +101,19 @@ to install the necessary Python libraries.
 
 4. **Configure Environment Variables**: 
 
+
 Rename the `.sample.env` file located in `TM-ALGO` folder to `.env` 
+=======
+Rename the `.sample.env` file located in `TM-Algo` folder to `.env` 
 
 Update the `.env`  with your specific configurations as shown in the provided template.
 
 5. **Run the Application**: 
 
+
 From the `TM-ALGO` directory, start the Flask application with the command:
+=======
+From the `TM-Algo` directory, start the Flask application with the command:
 
 <code>python app.py</code>
 
@@ -84,9 +125,14 @@ eventlet or gevent (in this app we are using eventlet).
 In case of running using Gunicorn, -w 1 specifies that you should only use one worker process. This is important because WebSocket connections are persistent and stateful; having more than one worker would mean that a user could be switched between different workers, which would break the connection.
 
 
+
 ### Accessing TM-ALGO
 
 After completing the setup, access the TM-ALGO platform by navigating to [http://127.0.0.1:5000](http://127.0.0.1:5000) in your web browser. Log in using the credentials you defined in the `.env` file.
+=======
+### Accessing TM-Algo
+
+After completing the setup, access the TM-Algo platform by navigating to [http://127.0.0.1:5000](http://127.0.0.1:5000) in your web browser. Log in using the credentials you defined in the `.env` file.
 
 ### Connecting Trading Platforms
 
@@ -204,7 +250,10 @@ Sample Place Order with the /api/v1/placesmartorder which can be used with any t
 ## How Place Smart Order Works?
 PlaceSmartOrder API function, which allows traders to build intelligent trading systems that can automatically place orders based on existing trade positions in the position book.
 
+
 | Action | Qty (API) | Pos Size (API) | Current Open Pos | Action by TM-ALGO                     |
+=======
+| Action | Qty (API) | Pos Size (API) | Current Open Pos | Action by TM-Algo                     |
 |--------|-----------|----------------|------------------|----------------------------------------|
 | BUY    | 100       | 0              | 0                | No Open Pos Found. Buy +100 qty        |
 | BUY    | 100       | 100            | -100             | BUY 200 to match Open Pos in API Param |
@@ -254,8 +303,14 @@ PlaceSmartOrder API function, which allows traders to build intelligent trading 
 ## Windows and Linux Complete Configuration Instructions 
 
 For Configuration Instructions Visit the Tutorial
+
 [https://docs.TM-ALGO.in](https://docs.TM-ALGO.in)
 
 
 Congratulations! You have successfully set up TM-ALGO. Explore the platform and start maximizing your trading performance through automation.
+=======
+[https://docs.TM-Algo.in](https://docs.TM-Algo.in)
+
+
+Congratulations! You have successfully set up TM-Algo. Explore the platform and start maximizing your trading performance through automation.
 
