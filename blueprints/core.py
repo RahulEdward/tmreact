@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, send_from_directory ,render_template
+from flask import Blueprint, current_app, send_from_directory, render_template
 import os
 
 core_bp = Blueprint('core_bp', __name__)
@@ -6,6 +6,10 @@ core_bp = Blueprint('core_bp', __name__)
 @core_bp.route('/')
 def home():
     return render_template('index.html')
+
+@core_bp.route('/about')
+def about():
+    return render_template('about.html')
 
 @core_bp.route('/docs/')
 def docs():

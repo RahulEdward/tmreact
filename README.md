@@ -1,11 +1,11 @@
 
 # TM-ALGO - Take Control of Your Algo Platform
 
-TM-ALGO is an open-source, Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-ALGO facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
+TM-ALGO is a Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-ALGO facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
 =======
 # TM-Algo - Take Control of Your Algo Platform
 
-TM-Algo is an open-source, Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-Algo facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
+TM-Algo is a Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-Algo facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
 
 ## Supported Broker
 
@@ -22,7 +22,7 @@ TM-Algo is an open-source, Flask-based Python application designed to bridge the
 
 ## Documentation
 
-For detailed documentation on TM-ALGO, including setup guides, API references, and usage examples, refer to [https://docs.TM-ALGO.in](https://docs.TM-ALGO.in)
+For detailed documentation on TM-ALGO, including setup guides, API references, and usage examples, refer to [https://docs.tradingmaven.in](https://docs.tradingmaven.in)
 
 ## Contributing
 
@@ -36,7 +36,7 @@ TM-ALGO is released under the GPL V3.0 License. See the `LICENSE` file for more 
 
 ## Documentation
 
-For detailed documentation on TM-Algo, including setup guides, API references, and usage examples, refer to [https://docs.TM-Algo.in](https://docs.TM-Algo.in)
+For detailed documentation on TM-Algo, including setup guides, API references, and usage examples, refer to [https://docs.tradingmaven.in](https://docs.tradingmaven.in)
 
 ## Contributing
 
@@ -304,12 +304,12 @@ PlaceSmartOrder API function, which allows traders to build intelligent trading 
 
 For Configuration Instructions Visit the Tutorial
 
-[https://docs.TM-ALGO.in](https://docs.TM-ALGO.in)
+[https://docs.tradingmaven.in](https://docs.tradingmaven.in)
 
 
 Congratulations! You have successfully set up TM-ALGO. Explore the platform and start maximizing your trading performance through automation.
 =======
-[https://docs.TM-Algo.in](https://docs.TM-Algo.in)
+[https://docs.tradingmaven.in](https://docs.tradingmaven.in)
 
 
 Congratulations! You have successfully set up TM-Algo. Explore the platform and start maximizing your trading performance through automation.
