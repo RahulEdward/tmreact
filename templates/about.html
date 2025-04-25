@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn about TradingMaven - Our mission, team, and values in algorithmic trading.">
+
+    <!-- Page Title & Favicon -->
+    <title>About Us - TradingMaven</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+
+    <!-- Tailwind CSS, DaisyUI and Custom Font -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.0/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        accent: '#10B981',
+                        dark: '#111827',
+                    }
+                }
+            },
+            daisyui: {
+                themes: ["dark"],
+            },
+        }
+    </script>
+
+    <!-- Favicon and touch icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
+    <link rel="mask-icon" href="{{ url_for('static', filename='favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
+    
+    <!-- Meta tags for color settings -->
+    <meta name="msapplication-TileColor" content="#3B82F6">
+    <meta name="theme-color" content="#111827">
+    
+    <style>
+        .bg-mesh {
+            background-color: #0F172A;
+            background-image: 
+                radial-gradient(at 47% 33%, hsl(218, 41%, 13%) 0, transparent 59%), 
+                radial-gradient(at 82% 65%, hsl(218, 39%, 11%) 0, transparent 55%);
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-mesh text-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-dark/80 backdrop-blur-lg border-b border-gray-800 fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{{ url_for('dashboard_bp.dashboard') }}" class="flex items-center">
+                        <img src="{{ url_for('static', filename='favicon/logo.png') }}" alt="TradingMaven Logo" class="h-8 mr-2">
+                        <span class="text-xl font-semibold text-white">TradingMaven</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex space-x-4 mr-4">
+                    <a href="{{ url_for('core_bp.home') }}" class="text-gray-200 px-3 py-2 rounded-md font-medium hover:bg-primary/20 hover:text-white transition-all duration-200">Home</a>
+                    <a href="{{ url_for('core_bp.about') }}" class="text-gray-200 px-3 py-2 rounded-md font-medium hover:bg-primary/20 hover:text-white transition-all duration-200 bg-primary/30">About Us</a>
+                </div>
+                
+                <!-- Auth buttons -->
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('auth.login') }}" class="border border-blue-600 text-white px-6 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-800/50">Log in</a>
+                    <a href="{{ url_for('auth.register') }}" class="bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-800">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-20 pb-8">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Hero Section -->
+    <div class="text-center py-8">
+        <h1 class="text-5xl font-bold text-white mb-4">About TradingMaven</h1>
+        <p class="max-w-3xl mx-auto text-xl text-gray-300">
+            Advanced algorithmic trading platform built for traders of all experience levels.
+        </p>
+    </div>
+
+    <!-- Our Mission -->
+    <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 mb-10 border border-gray-800">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                <img src="{{ url_for('static', filename='favicon/logo.png') }}" alt="TradingMaven Mission" class="w-32 h-32 mx-auto">
+            </div>
+            <div class="md:w-1/2">
+                <h2 class="text-3xl font-bold text-white mb-4">Our Mission</h2>
+                <p class="text-gray-300 mb-4">
+                    At TradingMaven, our mission is to democratize algorithmic trading by providing sophisticated tools that were once only available to institutional investors. We believe that every trader should have access to powerful algorithms and real-time market data to make informed decisions.
+                </p>
+                <p class="text-gray-300">
+                    We are committed to creating a platform that combines cutting-edge technology with an intuitive user experience, making algorithmic trading accessible to everyone.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Team -->
+    <h2 class="text-3xl font-bold text-white mb-8 text-center">Meet Our Team</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <!-- Team Member 1 -->
+        <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800 text-center">
+            <div class="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 mx-auto mb-4 flex items-center justify-center">
+                <span class="text-2xl font-bold text-white">RK</span>
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">Rahul Kumar</h3>
+            <p class="text-gray-400 mb-3">Founder & CEO</p>
+            <p class="text-gray-300 text-sm">
+                With over 10 years of experience in algorithmic trading and financial markets, Rahul leads our vision and strategy.
+            </p>
+        </div>
+        
+        <!-- Team Member 2 -->
+        <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800 text-center">
+            <div class="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 mx-auto mb-4 flex items-center justify-center">
+                <span class="text-2xl font-bold text-white">AS</span>
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">Anita Sharma</h3>
+            <p class="text-gray-400 mb-3">CTO</p>
+            <p class="text-gray-300 text-sm">
+                Anita brings extensive expertise in financial technology and leads our engineering team to build robust trading systems.
+            </p>
+        </div>
+        
+        <!-- Team Member 3 -->
+        <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800 text-center">
+            <div class="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 mx-auto mb-4 flex items-center justify-center">
+                <span class="text-2xl font-bold text-white">VP</span>
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">Vikram Patel</h3>
+            <p class="text-gray-400 mb-3">Head of Research</p>
+            <p class="text-gray-300 text-sm">
+                Vikram leads our research team in developing and optimizing trading algorithms based on market data and trends.
+            </p>
+        </div>
+    </div>
+
+    <!-- Our Values -->
+    <div class="mb-10">
+        <h2 class="text-3xl font-bold text-white mb-8 text-center">Our Values</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Value 1 -->
+            <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white">Innovation</h3>
+                </div>
+                <p class="text-gray-300">
+                    We continuously push the boundaries of what's possible in algorithmic trading, developing new strategies and tools to give our users an edge.
+                </p>
+            </div>
+            
+            <!-- Value 2 -->
+            <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white">Security</h3>
+                </div>
+                <p class="text-gray-300">
+                    We prioritize the security of our users' data and funds, implementing bank-grade encryption and security protocols throughout our platform.
+                </p>
+            </div>
+            
+            <!-- Value 3 -->
+            <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white">Accessibility</h3>
+                </div>
+                <p class="text-gray-300">
+                    We design our platform to be accessible to traders of all experience levels, from beginners to professionals, with intuitive interfaces and comprehensive documentation.
+                </p>
+            </div>
+            
+            <!-- Value 4 -->
+            <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-700 flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white">Reliability</h3>
+                </div>
+                <p class="text-gray-300">
+                    We build our systems to be reliable and performant, ensuring that our users can trade with confidence even during high market volatility.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="bg-dark/30 backdrop-blur-sm rounded-xl p-8 border border-gray-800">
+        <h2 class="text-3xl font-bold text-white mb-6 text-center">Get in Touch</h2>
+        <p class="text-gray-300 text-center mb-8">
+            Have questions or want to learn more about TradingMaven? We'd love to hear from you!
+        </p>
+        <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
+            <a href="mailto:contact@tradingmaven.in" class="bg-purple-700 text-white px-6 py-3 rounded-md font-medium transition-all duration-200 hover:bg-purple-800 text-center">
+                Email Us
+            </a>
+            <a href="#" class="border border-purple-700 text-purple-700 px-6 py-3 rounded-md font-medium transition-all duration-200 hover:bg-purple-50 text-center">
+                Schedule a Demo
+            </a>
+        </div>
+    </div>
+    </div>
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+</body>
+</html>

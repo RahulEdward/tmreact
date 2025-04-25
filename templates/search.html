@@ -7,18 +7,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 bg-gray-100 min-h-screen">
-    <h1 class="text-xl font-semibold text-center mb-4">Search Results</h1>
-    <p class="text-center mb-4">Found {{ results|length }} matching symbols.</p>
+<div class="container mx-auto px-4 bg-dark min-h-screen">
+    <h1 class="text-xl font-semibold text-center mb-4 text-primary">Search Results</h1>
+    <p class="text-center mb-4 text-gray-300">Found {{ results|length }} matching symbols.</p>
     <div class="overflow-x-auto">
         <table class="table-auto w-full text-left whitespace-no-wrap">
             <thead>
-                <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b bg-gray-50">
+                <tr class="text-xs font-semibold tracking-wide text-left text-gray-200 uppercase border-b bg-gray-800">
                     
-                    <th class="px-4 py-3">TM-Algo Symbol</th>
+                    <th class="px-4 py-3">TradingMaven Symbol</th>
                     <th class="px-4 py-3">Broker Symbol</th>
                     <th class="px-4 py-3">Name</th>
-                    <th class="px-4 py-3">TM-Algo Exchange</th>
+                    <th class="px-4 py-3">TradingMaven Exchange</th>
                     <th class="px-4 py-3">Broker Exchange</th>
                     <th class="px-4 py-3">Token</th>
                     <th class="px-4 py-3">Expiry</th>
@@ -28,9 +28,9 @@
                     <!-- <th class="px-4 py-3">Tick Size</th> -->
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y">
+            <tbody class="bg-gray-900 divide-y divide-gray-800">
                 {% for row in results %}
-                <tr class="text-gray-700">
+                <tr class="text-gray-300">
                     <td class="px-4 py-3">{{ row.symbol }}</td>
                     <td class="px-4 py-3">{{ row.brsymbol }}</td>
                     <td class="px-4 py-3">{{ row.name }}</td>
@@ -48,7 +48,7 @@
         </table>
     </div>
     <div class="text-center mt-4">
-        <a href="{{ url_for('search_bp.token') }}" class="text-blue-500 hover:underline">New search</a>
+        <a href="{{ url_for('search_bp.token') }}" class="text-blue-400 hover:text-blue-300 hover:underline">New search</a>
     </div>
 </div>
 {% endblock %}
