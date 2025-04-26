@@ -10,8 +10,9 @@ import http.client
 import json
 import os
 import traceback
+import sqlite3
 from threading import Thread
-from database.auth_db import upsert_auth, get_user_by_username, get_user_by_id, create_user
+from database.auth_db import upsert_auth, get_user_by_username, get_user_by_id, create_user, check_user_approval
 from database.master_contract_db import master_contract_download
 from flask_bcrypt import Bcrypt
 
@@ -191,14 +192,42 @@ def login():
                     feed_token = response_json.get('data', {}).get('feedToken')
                     
                     if auth_token:
+                        # Check user approval status before allowing access
+                        approval_status = check_user_approval(username)
+                        
+                        if not approval_status['is_valid']:
+                            print(f"User {username} login denied: {approval_status['message']}")
+                            flash(approval_status['message'], 'danger')
+                            return render_template('login.html')
+                        
                         # Store tokens in session
-                        session['auth_token'] = auth_token
-                        session['refresh_token'] = refresh_token
-                        session['feed_token'] = feed_token
-                        session['api_key'] = apikey
+                        session.clear()  # Clear any existing session data first
+                        
+                        # Store user info in session
+                        session['user'] = username
                         session['user_id'] = user_id
-                        session['username'] = username
+                        session['apikey'] = apikey
+                        session['AUTH_TOKEN'] = auth_token
+                        session['FEED_TOKEN'] = feed_token
                         session['logged_in'] = True
+                        
+                        # Store admin status in session if applicable
+                        user_obj = get_user_by_username(username)
+                        if user_obj:
+                            print(f"DEBUG: User object found: {user_obj.username}, Admin: {getattr(user_obj, 'is_admin', False)}")
+                            # Directly query the database to get admin status
+                            try:
+                                conn = sqlite3.connect('db/openalgo.db')
+                                cursor = conn.cursor()
+                                cursor.execute("SELECT is_admin FROM users WHERE username = ?", (username,))
+                                result = cursor.fetchone()
+                                conn.close()
+                                
+                                if result and result[0]:
+                                    session['is_admin'] = True
+                                    print(f"DEBUG: Set is_admin=True in session for {username}")
+                            except Exception as db_error:
+                                print(f"ERROR checking admin status: {str(db_error)}")
                         
                         # Start master contract download in the background
                         thread = Thread(target=async_master_contract_download, args=(user,))
@@ -239,6 +268,7 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
+    # Handle user logout
     if session.get('logged_in'):
         username = session.get('user')
         
@@ -251,7 +281,7 @@ def logout():
             else:
                 print("Failed to revoke auth token in database")
         
-        # Clear session
+        # Clear all user session data
         session.pop('user', None)
         session.pop('user_id', None)
         session.pop('apikey', None)
@@ -259,7 +289,7 @@ def logout():
         session.pop('logged_in', None)
         session.pop('AUTH_TOKEN', None)
         session.pop('FEED_TOKEN', None)
-        print("Session cleared")
+        print("User session cleared")
     
     flash('You have been logged out successfully', 'success')
     return redirect(url_for('auth.login'))

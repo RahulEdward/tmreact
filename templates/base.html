@@ -82,6 +82,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:flex space-x-4 mr-4">
                     {% if session.get('logged_in') %}
+                        <!-- Regular user navigation -->
                         <a href="{{ url_for('dashboard_bp.dashboard') }}" class="text-primary px-3 py-2 rounded-md font-medium hover:bg-primary/20 hover:text-primary transition-all duration-200">Dashboard</a>
                         <a href="{{ url_for('orders_bp.orderbook') }}" class="text-primary px-3 py-2 rounded-md font-medium hover:bg-primary/20 hover:text-primary transition-all duration-200">Orderbook</a>
                         <a href="{{ url_for('orders_bp.tradebook') }}" class="text-primary px-3 py-2 rounded-md font-medium hover:bg-primary/20 hover:text-primary transition-all duration-200">Tradebook</a>
@@ -97,7 +98,7 @@
                 <!-- Auth buttons -->
                 <div class="flex items-center space-x-3">
                     {% if not session.get('logged_in') %}
-                        <a href="{{ url_for('auth.login') }}" class="border border-blue-600 text-white px-6 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-800/50">Log in</a>
+                        <a href="{{ url_for('auth.login') }}" class="text-blue-400 px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-900/20">Log in</a>
                         <a href="{{ url_for('auth.register') }}" class="bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-800">Register</a>
                     {% else %}
                         <!-- Profile dropdown -->
@@ -131,10 +132,11 @@
             </div>
         </div>
 
-        <!-- Mobile menu, show/hide based on menu state. -->
-        <div class="md:hidden hidden" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <!-- Mobile menu panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-dark/95 backdrop-blur-lg border-b border-gray-800 p-4">
+            <div class="space-y-1 px-2 pb-3 pt-2">
                 {% if session.get('logged_in') %}
+                    <!-- Regular user navigation -->
                     <a href="{{ url_for('dashboard_bp.dashboard') }}" class="text-primary hover:bg-primary/20 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
                     <a href="{{ url_for('orders_bp.orderbook') }}" class="text-primary hover:bg-primary/20 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Orderbook</a>
                     <a href="{{ url_for('orders_bp.tradebook') }}" class="text-primary hover:bg-primary/20 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Tradebook</a>

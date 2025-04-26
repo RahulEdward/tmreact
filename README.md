@@ -1,8 +1,3 @@
-
-# TM-ALGO - Take Control of Your Algo Platform
-
-TM-ALGO is a Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-ALGO facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
-=======
 # TM-Algo - Take Control of Your Algo Platform
 
 TM-Algo is a Flask-based Python application designed to bridge the gap between traders and major trading platforms such as Amibroker, Tradingview, Excel, and Google Spreadsheets. With a focus on simplifying algotrading, TM-Algo facilitates easy integration, automation, and execution of trading strategies, providing a user-friendly interface to enhance trading performance.
@@ -17,22 +12,16 @@ TM-Algo is a Flask-based Python application designed to bridge the gap between t
 - **User-Friendly Interface**: A straightforward Flask-based application interface accessible to traders of all levels of expertise.
 - **Real-Time Execution**: Implement your trading strategies in real time, ensuring immediate action to capitalize on market opportunities.
 - **Customizable Strategies**: Easily adapt and tailor your trading strategies to meet your specific needs, with extensive options for customization and automation.
-
-- **Secure and Reliable**: With a focus on security and reliability, TM-ALGO provides a dependable platform for your algotrading activities, safeguarding your data and trades.
-
-## Documentation
-
-For detailed documentation on TM-ALGO, including setup guides, API references, and usage examples, refer to [https://docs.tradingmaven.in](https://docs.tradingmaven.in)
-
-## Contributing
-
-We welcome contributions to TM-ALGO! If you're interested in improving the application or adding new features, please feel free to fork the repository, make your changes, and submit a pull request.
-
-## License
-
-TM-ALGO is released under the GPL V3.0 License. See the `LICENSE` file for more details.
-=======
 - **Secure and Reliable**: With a focus on security and reliability, TM-Algo provides a dependable platform for your algotrading activities, safeguarding your data and trades.
+- **Admin Dashboard**: Separate admin login, dashboard, and user management (approve/revoke users, set access duration).
+- **User Management**: Admins can approve/revoke users, set expiry dates, and see all users in a data table.
+- **Session Security**: Completely separate admin and user sessions to prevent conflicts. Secure cookies for admin.
+- **Real-Time Notifications**: Admins get instant alerts (sound + visual) for new user registrations.
+- **API Key Management**: Each user is assigned unique API keys, managed securely.
+- **Database**: Robust models for users, auth tokens, and API keys. All actions logged with timestamps.
+- **Modern UI**: Clean, responsive design for both users and admins. Data tables and AJAX for smooth UX.
+- **Easy Setup**: .env-based config, requirements.txt, and simple run commands.
+- **Extensible**: Easily add new brokers, strategies, or integrations.
 
 ## Documentation
 
@@ -52,9 +41,6 @@ For support, feature requests, or to contribute further, please contact us via G
 
 ---
 
-
-# Getting Started with TM-ALGO
-=======
 # Getting Started with TM-Algo
 
 ## Installation Procedure
@@ -71,18 +57,6 @@ Before we begin, ensure you have the following:
 ### Setup
 
 1. **Install VS Code Extensions**: Open VS Code, navigate to the Extensions section on the left tab, and install the Python, Pylance, and Jupyter extensions.
-2. **Clone the Repository**: Open the VS Code Terminal and clone the TM-ALGO repository with the command:
-
-<code>git clone https://github.com/marketcalls/TM-ALGO</code>
-
-3. **Install Dependencies**: 
-
-Windows users Navigate to the directory where TM-ALGO is cloned and execute:
-
-<code>pip install -r requirements.txt</code>
-
-Linux/Nginx users Navigate to the directory where TM-ALGO is cloned and execute:
-=======
 2. **Clone the Repository**: Open the VS Code Terminal and clone the TM-Algo repository with the command:
 
 <code>git clone https://github.com/marketcalls/TM-Algo</code>

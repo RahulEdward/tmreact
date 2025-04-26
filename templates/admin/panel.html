@@ -1,0 +1,86 @@
+<!-- templates/admin/panel.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let prevUserCount = null;
+        function playSound() {
+            const audio = new Audio('/static/sounds/notify.mp3');
+            audio.play();
+        }
+        function checkNewUsers() {
+            fetch('/admin/check-new-users')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (prevUserCount !== null && data.user_count > prevUserCount) {
+                            playSound();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'New User Registered!',
+                                text: 'A new user has registered.',
+                                timer: 3000,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false
+                            });
+                        }
+                        prevUserCount = data.user_count;
+                        document.getElementById('user-count').innerText = data.user_count;
+                    }
+                });
+        }
+        setInterval(checkNewUsers, 5000);
+        window.onload = checkNewUsers;
+    </script>
+</head>
+<body>
+    <div class="admin-dashboard">
+        <h1>Admin Dashboard</h1>
+        <div>
+            <span>Total Users: <strong id="user-count">{{ users|length }}</strong></span>
+        </div>
+        <a href="{{ url_for('admin.admin_logout') }}" class="btn btn-danger">Logout</a>
+        <hr>
+        <h2>User Management</h2>
+        <table border="1" cellpadding="5">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Expiry</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{% if user.is_approved %}Approved{% else %}Not Approved{% endif %}</td>
+                    <td>{{ user.expiry_formatted }}</td>
+                    <td>
+                        {% if not user.is_approved or user.is_expired %}
+                        <form method="post" action="{{ url_for('admin.approve_user_route') }}">
+                            <input type="hidden" name="username" value="{{ user.username }}">
+                            <input type="number" name="duration" min="1" placeholder="Days" required>
+                            <button type="submit">Approve</button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{{ url_for('admin.approve_user_route') }}">
+                            <input type="hidden" name="username" value="{{ user.username }}">
+                            <input type="hidden" name="revoke" value="true">
+                            <button type="submit">Revoke</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

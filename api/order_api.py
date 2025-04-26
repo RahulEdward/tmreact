@@ -12,20 +12,20 @@ def get_api_response(endpoint, method="GET", payload='', auth_token=None, api_ke
     
     if auth_token is None:
         # Try to get from session first
-        auth_token = session.get('auth_token')
+        auth_token = session.get('AUTH_TOKEN')  # Changed from 'auth_token' to 'AUTH_TOKEN'
         
         # If not in session, return an error - we need a valid auth token
         if auth_token is None:
-            print("ERROR: No auth_token found in session")
+            print("ERROR: No AUTH_TOKEN found in session")
             return {"status": "error", "message": "Authentication token not found. Please log in again."}
     
     if api_key is None:
         # Try to get from session first
-        api_key = session.get('api_key')
+        api_key = session.get('apikey')  # Changed from 'api_key' to 'apikey'
         
         # If not in session, return an error - we need a valid API key
         if api_key is None:
-            print("ERROR: No API key found in session")
+            print("ERROR: No apikey found in session")
             return {"status": "error", "message": "API key not found. Please log in again."}
 
     # Check if auth_token or api_key is a dictionary (error response from earlier checks)
@@ -87,12 +87,12 @@ def place_order_api(data):
     # Get auth token and API key from session if available
     from flask import session
     
-    AUTH_TOKEN = session.get('auth_token')
+    AUTH_TOKEN = session.get('AUTH_TOKEN')  # Changed from 'auth_token' to 'AUTH_TOKEN'
     if AUTH_TOKEN is None:
         login_username = os.getenv('LOGIN_USERNAME')
         AUTH_TOKEN = get_auth_token(login_username)
     
-    BROKER_API_KEY = session.get('api_key')
+    BROKER_API_KEY = session.get('apikey')  # Changed from 'api_key' to 'apikey'
     if BROKER_API_KEY is None:
         BROKER_API_KEY = os.getenv('BROKER_API_KEY')
         
@@ -266,12 +266,12 @@ def cancel_order(orderid):
     # Get auth token and API key from session if available
     from flask import session
     
-    AUTH_TOKEN = session.get('auth_token')
+    AUTH_TOKEN = session.get('AUTH_TOKEN')  # Changed from 'auth_token' to 'AUTH_TOKEN'
     if AUTH_TOKEN is None:
         login_username = os.getenv('LOGIN_USERNAME')
         AUTH_TOKEN = get_auth_token(login_username)
     
-    api_key = session.get('api_key')
+    api_key = session.get('apikey')  # Changed from 'api_key' to 'apikey'
     if api_key is None:
         api_key = os.getenv('BROKER_API_KEY')
     
@@ -313,12 +313,12 @@ def modify_order(data):
     # Get auth token and API key from session if available
     from flask import session
     
-    AUTH_TOKEN = session.get('auth_token')
+    AUTH_TOKEN = session.get('AUTH_TOKEN')  # Changed from 'auth_token' to 'AUTH_TOKEN'
     if AUTH_TOKEN is None:
         login_username = os.getenv('LOGIN_USERNAME')
         AUTH_TOKEN = get_auth_token(login_username)
     
-    api_key = session.get('api_key')
+    api_key = session.get('apikey')  # Changed from 'api_key' to 'apikey'
     if api_key is None:
         api_key = os.getenv('BROKER_API_KEY')
 

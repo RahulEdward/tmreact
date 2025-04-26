@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from database.db import db 
 from cachetools import TTLCache
 import traceback
+from datetime import datetime, timedelta  # <-- FIX: Import timedelta
 
 # Define a cache for the auth tokens and api_key with a max size and a 30-second TTL
 auth_cache = TTLCache(maxsize=1024, ttl=30)
@@ -64,6 +65,10 @@ class Users(Base):
     username = Column(String(255), unique=True, nullable=False)
     user_id = Column(String(255), unique=True, nullable=False)
     apikey = Column(String(255), nullable=False)
+    is_admin = Column(Boolean, default=False)
+    is_approved = Column(Boolean, default=False)
+    approved_start_date = Column(DateTime(timezone=True), nullable=True)
+    approved_expiry_date = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=func.now())
 
 def init_db():
@@ -234,36 +239,36 @@ def get_api_key_dbquery(user_id):
 
 # User management functions
 
-def create_user(username, user_id, apikey):
+def create_user(username, user_id, apikey, is_admin=False):
     """Create a new user in the database"""
     if not username or not user_id or not apikey:
-        print("ERROR in create_user: Missing required parameters")
+        print("ERROR in create_user: Missing required fields")
         return {"status": "error", "message": "All fields are required"}
     
     try:
-        # Check if user already exists
+        # Check if username already exists
         existing_user = Users.query.filter_by(username=username).first()
         if existing_user:
             print(f"ERROR in create_user: Username {username} already exists")
             return {"status": "error", "message": "Username already exists"}
             
-        existing_user_id = Users.query.filter_by(user_id=user_id).first()
-        if existing_user_id:
+        # Check if user_id already exists
+        existing_id = Users.query.filter_by(user_id=user_id).first()
+        if existing_id:
             print(f"ERROR in create_user: User ID {user_id} already exists")
             return {"status": "error", "message": "User ID already exists"}
-            
+        
         # Create new user
-        new_user = Users(username=username, user_id=user_id, apikey=apikey)
-        db_session.add(new_user)
-        db_session.commit()
+        user = Users(username=username, user_id=user_id, apikey=apikey, is_admin=is_admin)
+        db_session.add(user)
         
-        # Also add to ApiKeys table for API authentication
-        api_key_obj = ApiKeys(user_id=user_id, api_key=apikey)
-        db_session.add(api_key_obj)
-        db_session.commit()
+        # Also add to ApiKeys table
+        api_key = ApiKeys(user_id=user_id, api_key=apikey)
+        db_session.add(api_key)
         
-        print(f"Successfully created user: {username} with user_id: {user_id}")
-        return {"status": "success", "user_id": user_id}
+        db_session.commit()
+        print(f"Successfully created user: {username}")
+        return {"status": "success", "message": "User created successfully"}
     except Exception as e:
         db_session.rollback()
         print(f"ERROR creating user: {str(e)}")
@@ -354,6 +359,19 @@ def update_user(username, new_data):
             else:
                 api_key_obj = ApiKeys(user_id=user.user_id, api_key=new_data['apikey'])
                 db_session.add(api_key_obj)
+        
+        # Handle approval fields
+        if 'is_approved' in new_data:
+            user.is_approved = new_data['is_approved']
+            
+        if 'approved_start_date' in new_data:
+            user.approved_start_date = new_data['approved_start_date']
+            
+        if 'approved_expiry_date' in new_data:
+            user.approved_expiry_date = new_data['approved_expiry_date']
+            
+        if 'is_admin' in new_data:
+            user.is_admin = new_data['is_admin']
             
         db_session.commit()
         print(f"Successfully updated user: {username}")
@@ -363,6 +381,84 @@ def update_user(username, new_data):
         print(f"ERROR updating user: {str(e)}")
         traceback.print_exc()
         return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def approve_user(username, duration_days):
+    """Approve a user for a specific duration"""
+    if not username:
+        print("ERROR in approve_user: username is empty")
+        return {"status": "error", "message": "Username is required"}
+    
+    if not isinstance(duration_days, int) or duration_days <= 0:
+        print(f"ERROR in approve_user: Invalid duration: {duration_days}")
+        return {"status": "error", "message": "Duration must be a positive integer"}
+    
+    try:
+        user = Users.query.filter_by(username=username).first()
+        if not user:
+            print(f"ERROR in approve_user: User {username} not found")
+            return {"status": "error", "message": "User not found"}
+        
+        # Set approval status and dates
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=duration_days)
+        
+        user.is_approved = True
+        user.approved_start_date = start_date
+        user.approved_expiry_date = expiry_date
+        
+        db_session.commit()
+        
+        print(f"Successfully approved user {username} for {duration_days} days (until {expiry_date})")
+        return {
+            "status": "success", 
+            "message": f"User approved for {duration_days} days",
+            "expiry_date": expiry_date
+        }
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR approving user: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def check_user_approval(username):
+    """Check if a user is approved and the approval is not expired"""
+    if not username:
+        print("ERROR in check_user_approval: username is empty")
+        return {"is_valid": False, "message": "Username is required"}
+    
+    try:
+        user = Users.query.filter_by(username=username).first()
+        if not user:
+            print(f"ERROR in check_user_approval: User {username} not found")
+            return {"is_valid": False, "message": "User not found"}
+        
+        # Check if user is admin (admins don't need approval)
+        if user.is_admin:
+            return {"is_valid": True, "message": "User is admin"}
+        
+        # Check if user is approved
+        if not user.is_approved:
+            return {"is_valid": False, "message": "You are not approved by admin yet"}
+        
+        # Check if approval has expired
+        current_time = datetime.now()
+        if user.approved_expiry_date and current_time > user.approved_expiry_date:
+            return {
+                "is_valid": False, 
+                "message": "Your access has expired. Please contact admin for renewal.",
+                "expiry_date": user.approved_expiry_date
+            }
+        
+        # User is approved and not expired
+        return {
+            "is_valid": True, 
+            "message": "User approval is valid",
+            "expiry_date": user.approved_expiry_date
+        }
+    except Exception as e:
+        print(f"ERROR checking user approval: {str(e)}")
+        traceback.print_exc()
+        return {"is_valid": False, "message": f"Error checking approval status: {str(e)}"}
 
 def delete_user(username):
     """Delete a user from the database"""
