@@ -25,7 +25,7 @@ def orderbook():
             error_message = order_data.get('message', 'Unknown error occurred')
             print(f"DEBUG - Order book API error: {error_message}")
             # Instead of logging out, show an error message
-            return render_template('orderbook.html', order_data=[], order_stats={}, error=error_message)
+            return jsonify({'status': 'error', 'message': error_message, 'data': []})
 
         try:
             # Process the data if no errors
@@ -43,73 +43,126 @@ def orderbook():
             
             # Pass the data to the orderbook.html template
             print("DEBUG - Rendering template with data")
-            return render_template('orderbook.html', order_data=order_data, order_stats=order_stats, error=None)
+            return jsonify({'status': 'success', 'data': order_data, 'stats': order_stats})
         except Exception as e:
             import traceback
             print(f"DEBUG - Error processing order data: {str(e)}")
             traceback.print_exc()
-            return render_template('orderbook.html', order_data=[], order_stats={}, error=f"Error processing data: {str(e)}")
+            return jsonify({'status': 'error', 'message': f"Error processing data: {str(e)}", 'data': []})
     except Exception as outer_e:
         import traceback
         print(f"DEBUG - Outer exception in orderbook route: {str(outer_e)}")
         traceback.print_exc()
-        return render_template('orderbook.html', order_data=[], order_stats={}, error=f"Server error: {str(outer_e)}")
+        return jsonify({'status': 'error', 'message': f"Server error: {str(outer_e)}", 'data': []})
 
 
 @orders_bp.route('/tradebook')
 def tradebook():
+    # Check authentication first
     if not session.get('logged_in'):
+        # For JSON requests, return 401
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({'status': 'error', 'message': 'Authentication required'}), 401
+        # For browser requests, redirect to login
         return redirect(url_for('auth.login'))
     
+    try:
+        tradebook_data = get_trade_book()
+        print(tradebook_data)
 
-    tradebook_data = get_trade_book()
+        # Check if there's an error in the API response
+        if tradebook_data.get('status') == 'error':
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({
+                    'status': 'error', 
+                    'message': tradebook_data.get('message', 'Failed to fetch trade book')
+                }), 500
+            return redirect(url_for('auth.logout'))
 
-    
-    # Check if 'data' is None
-
-    if tradebook_data['status'] == 'error':
+        # Process the data
+        tradebook_data = map_trade_data(trade_data=tradebook_data) 
+        tradebook_data = transform_tradebook_data(tradebook_data)
+        print(tradebook_data)
+        
+        # Check if request wants JSON (from React frontend)
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'success',
+                'data': tradebook_data
+            })
+        else:
+            # For direct browser access, redirect to React app
+            return redirect('http://localhost:5173/tradebook')
+            
+    except Exception as e:
+        print(f"Error in tradebook API: {str(e)}")
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to fetch trade book data'
+            }), 500
         return redirect(url_for('auth.logout'))
-
-    
-    tradebook_data = map_trade_data(trade_data=tradebook_data) 
-    print(tradebook_data)
-
-    tradebook_data = transform_tradebook_data(tradebook_data)
-    
-    
-
-    return render_template('tradebook.html', tradebook_data=tradebook_data)
 
 
 @orders_bp.route('/positions')
 def positions():
+    # Check authentication first
     if not session.get('logged_in'):
+        # For JSON requests, return 401
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({'status': 'error', 'message': 'Authentication required'}), 401
+        # For browser requests, redirect to login
         return redirect(url_for('auth.login'))
     
-    positions_data = get_positions()
-    print(positions_data)
+    try:
+        positions_data = get_positions()
+        print(positions_data)
 
-    if positions_data['status'] == 'error':
-        return redirect(url_for('auth.logout'))
+        # Check if there's an error in the API response
+        if positions_data.get('status') == 'error':
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({
+                    'status': 'error', 
+                    'message': positions_data.get('message', 'Failed to fetch positions')
+                }), 500
+            return redirect(url_for('auth.logout'))
 
-
-    positions_data = map_position_data(positions_data)
-    
-
-    positions_data = transform_positions_data(positions_data)
-    print(positions_data)
+        # Process the data
+        positions_data = map_position_data(positions_data)
+        positions_data = transform_positions_data(positions_data)
+        print(positions_data)
         
-    return render_template('positions.html', positions_data=positions_data)
+        # Check if request wants JSON (from React frontend)
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'success',
+                'data': positions_data
+            })
+        else:
+            # For direct browser access, redirect to React app
+            return redirect('http://localhost:5173/positions')
+            
+    except Exception as e:
+        print(f"Error in positions API: {str(e)}")
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to fetch positions data'
+            }), 500
+        return redirect(url_for('auth.logout'))
 
 @orders_bp.route('/holdings')
 def holdings():
+    # Check authentication first
+    if not session.get('logged_in'):
+        # For JSON requests, return 401
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({'status': 'error', 'message': 'Authentication required'}), 401
+        # For browser requests, redirect to login
+        return redirect(url_for('auth.login'))
+    
     try:
         print("DEBUG - Starting holdings route handler")
-        
-        if not session.get('logged_in'):
-            print("DEBUG - User not logged in, redirecting to login page")
-            return redirect(url_for('auth.login'))
-        
         print("DEBUG - User is logged in, session data:", dict(session))
         print("DEBUG - Calling get_holdings()")
         
@@ -120,8 +173,13 @@ def holdings():
         if holdings_data.get('status') == 'error':
             error_message = holdings_data.get('message', 'Unknown error occurred')
             print(f"DEBUG - Holdings API error: {error_message}")
-            # Instead of logging out, show an error message
-            return render_template('holdings.html', holdings_data=[], portfolio_stats={}, error=error_message)
+            
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({
+                    'status': 'error', 
+                    'message': error_message
+                }), 500
+            return jsonify({'status': 'error', 'message': error_message, 'data': []})
         
         try:
             # Process the data if no errors
@@ -137,18 +195,41 @@ def holdings():
             transformed_data = transform_holdings_data(mapped_data)
             print("DEBUG - After transform:", transformed_data)
             
-            # Pass the data to the holdings.html template
-            print("DEBUG - Rendering template with data")
-            return render_template('holdings.html', holdings_data=transformed_data, portfolio_stats=portfolio_stats, error=None)
+            # Check if request wants JSON (from React frontend)
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({
+                    'status': 'success',
+                    'data': {
+                        'holdings': transformed_data,
+                        'stats': portfolio_stats
+                    }
+                })
+            else:
+                # For direct browser access, redirect to React app
+                return redirect('http://localhost:5173/holdings')
+                
         except Exception as e:
             import traceback
             print(f"DEBUG - Error processing holdings data: {str(e)}")
             traceback.print_exc()
-            return render_template('holdings.html', holdings_data=[], portfolio_stats={}, error=f"Error processing data: {str(e)}")
+            
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({
+                    'status': 'error',
+                    'message': f"Error processing data: {str(e)}"
+                }), 500
+            return jsonify({'status': 'error', 'message': f"Error processing data: {str(e)}", 'data': []})
+            
     except Exception as outer_e:
         import traceback
         print(f"DEBUG - Outer exception in holdings route: {str(outer_e)}")
         traceback.print_exc()
-        return render_template('holdings.html', holdings_data=[], portfolio_stats={}, error=f"Server error: {str(outer_e)}")
+        
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'error',
+                'message': f"Server error: {str(outer_e)}"
+            }), 500
+        return jsonify({'status': 'error', 'message': f"Server error: {str(outer_e)}", 'data': []})
 
 

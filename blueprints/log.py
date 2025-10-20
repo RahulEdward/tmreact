@@ -22,4 +22,13 @@ def view_logs():
     # Filter logs by today's date in IST
     logs = OrderLog.query.filter(func.date(OrderLog.created_at) == today_ist).order_by(OrderLog.created_at.desc()).all()
 
-    return render_template('logs.html', logs=logs)
+    logs_data = [{
+        'id': log.id,
+        'symbol': log.symbol,
+        'action': log.action,
+        'quantity': log.quantity,
+        'price': log.price,
+        'order_id': log.order_id,
+        'created_at': log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else None
+    } for log in logs]
+    return jsonify({'status': 'success', 'logs': logs_data})

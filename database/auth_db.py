@@ -51,6 +51,19 @@ class Auth(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
+class AuthTokens(Base):
+    __tablename__ = 'auth_tokens'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(255), nullable=False)
+    user_id = Column(String(255), nullable=False)
+    access_token = Column(Text, nullable=False)
+    feed_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
 class ApiKeys(Base):
     __tablename__ = 'api_keys'
     id = Column(Integer, primary_key=True)
@@ -421,7 +434,7 @@ def approve_user(username, duration_days):
         return {"status": "error", "message": f"Database error: {str(e)}"}
 
 def check_user_approval(username):
-    """Check if a user is approved and the approval is not expired"""
+    """Check if a user is approved and the approval is not expired - ADMIN APPROVAL DISABLED"""
     if not username:
         print("ERROR in check_user_approval: username is empty")
         return {"is_valid": False, "message": "Username is required"}
@@ -432,28 +445,11 @@ def check_user_approval(username):
             print(f"ERROR in check_user_approval: User {username} not found")
             return {"is_valid": False, "message": "User not found"}
         
-        # Check if user is admin (admins don't need approval)
-        if user.is_admin:
-            return {"is_valid": True, "message": "User is admin"}
-        
-        # Check if user is approved
-        if not user.is_approved:
-            return {"is_valid": False, "message": "You are not approved by admin yet"}
-        
-        # Check if approval has expired
-        current_time = datetime.now()
-        if user.approved_expiry_date and current_time > user.approved_expiry_date:
-            return {
-                "is_valid": False, 
-                "message": "Your access has expired. Please contact admin for renewal.",
-                "expiry_date": user.approved_expiry_date
-            }
-        
-        # User is approved and not expired
+        # ADMIN APPROVAL FEATURE DISABLED - All registered users are automatically approved
+        print(f"User {username} automatically approved (admin approval disabled)")
         return {
             "is_valid": True, 
-            "message": "User approval is valid",
-            "expiry_date": user.approved_expiry_date
+            "message": "User automatically approved (admin approval disabled)"
         }
     except Exception as e:
         print(f"ERROR checking user approval: {str(e)}")
@@ -493,5 +489,66 @@ def delete_user(username):
     except Exception as e:
         db_session.rollback()
         print(f"ERROR deleting user: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+# Auth Tokens Management Functions
+def store_auth_tokens(username, user_id, access_token, feed_token, refresh_token=None, expires_at=None):
+    """Store or update auth tokens for a user"""
+    try:
+        # Check if tokens already exist for this user
+        existing_token = AuthTokens.query.filter_by(username=username).first()
+        
+        if existing_token:
+            # Update existing tokens
+            existing_token.access_token = access_token
+            existing_token.feed_token = feed_token
+            existing_token.refresh_token = refresh_token
+            existing_token.expires_at = expires_at
+            existing_token.is_active = True
+            existing_token.updated_at = datetime.now()
+            print(f"Updated auth tokens for user: {username}")
+        else:
+            # Create new token record
+            new_token = AuthTokens(
+                username=username,
+                user_id=user_id,
+                access_token=access_token,
+                feed_token=feed_token,
+                refresh_token=refresh_token,
+                expires_at=expires_at,
+                is_active=True
+            )
+            db_session.add(new_token)
+            print(f"Created new auth tokens for user: {username}")
+        
+        db_session.commit()
+        return {"status": "success", "message": "Auth tokens stored successfully"}
+        
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR storing auth tokens: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def get_auth_tokens(username):
+    """Get auth tokens for a user"""
+    try:
+        token_record = AuthTokens.query.filter_by(username=username, is_active=True).first()
+        
+        if token_record:
+            return {
+                "status": "success",
+                "access_token": token_record.access_token,
+                "feed_token": token_record.feed_token,
+                "refresh_token": token_record.refresh_token,
+                "expires_at": token_record.expires_at,
+                "created_at": token_record.created_at
+            }
+        else:
+            return {"status": "error", "message": "No active tokens found for user"}
+            
+    except Exception as e:
+        print(f"ERROR getting auth tokens: {str(e)}")
         traceback.print_exc()
         return {"status": "error", "message": f"Database error: {str(e)}"}

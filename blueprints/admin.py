@@ -45,8 +45,8 @@ def admin_login():
             return response
         else:
             flash('Invalid admin credentials', 'danger')
-            return render_template('admin/login.html')
-    return render_template('admin/login.html')
+            return jsonify({'status': 'error', 'message': 'Invalid admin credentials'})
+    return jsonify({'status': 'success', 'message': 'Admin login endpoint'})
 
 @admin_bp.route('/panel')
 @admin_login_required
@@ -67,7 +67,15 @@ def admin_panel():
             else:
                 user.expiry_formatted = 'Not set'
                 user.is_expired = False
-        return render_template('admin/panel.html', users=users)
+        users_data = [{
+            'id': user.id,
+            'username': user.username,
+            'user_id': user.user_id,
+            'is_approved': user.is_approved,
+            'expiry_formatted': user.expiry_formatted if hasattr(user, 'expiry_formatted') else None,
+            'is_expired': user.is_expired if hasattr(user, 'is_expired') else False
+        } for user in users]
+        return jsonify({'status': 'success', 'users': users_data})
     except Exception as e:
         print(f"ERROR in admin_panel: {str(e)}")
         traceback.print_exc()

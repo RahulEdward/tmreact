@@ -3,6 +3,7 @@ flask-socketio
 Flask-SQLAlchemy
 flask-bcrypt
 Flask-Limiter
+Flask-CORS
 python-dotenv
 pyotp
 pytz

@@ -15,13 +15,20 @@ def generate_api_key(user_id):
 
 @api_key_bp.route('/apikey', methods=['GET', 'POST'])
 def manage_api_key():
+    # Check authentication first
     if not session.get('logged_in'):
-        return redirect(url_for('auth.login'))  
+        # For JSON requests, return 401
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({'status': 'error', 'message': 'Authentication required'}), 401
+        # For browser requests, redirect to login
+        return redirect(url_for('auth.login'))
     
     if request.method == 'GET':
-        # Get user_id from session instead of environment variable
+        # Get user_id from session
         user_id = session.get('user_id')
         if not user_id:
+            if request.headers.get('Accept') == 'application/json' or request.is_json:
+                return jsonify({'status': 'error', 'message': 'User ID not found in session'}), 401
             return redirect(url_for('auth.login'))
             
         username = session.get('username')
@@ -39,26 +46,58 @@ def manage_api_key():
             # Update session with API key if found
             if current_api_key:
                 session['api_key'] = current_api_key
+        
+        # Generate new API key if none exists
+        if not current_api_key:
+            current_api_key = generate_api_key(user_id)
+            upsert_api_key(user_id, current_api_key)
+            session['api_key'] = current_api_key
                 
         print(f"DEBUG - API Key Management - User ID: {user_id}, API Key: {current_api_key}")
-        return render_template('apikey.html', login_username=username, api_key=current_api_key if current_api_key else "No API Key found")
-    else:
-        # Get user_id from session instead of request
+        
+        # Check if request wants JSON (from React frontend)
+        if request.headers.get('Accept') == 'application/json' or request.is_json:
+            return jsonify({
+                'status': 'success',
+                'data': {
+                    'api_key': current_api_key,
+                    'login_username': username
+                }
+            })
+        else:
+            # For direct browser access, redirect to React app
+            return redirect('http://localhost:5173/apikey')
+            
+    else:  # POST request for regenerating API key
+        # Get user_id from session
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Not logged in or session expired'}), 401
+            return jsonify({'status': 'error', 'message': 'Authentication required'}), 401
         
-        api_key = generate_api_key(user_id)
-        key_id = upsert_api_key(user_id, api_key)
-        
-        # Update session with new API key
-        session['api_key'] = api_key
-        print(f"DEBUG - API Key Regenerated - User ID: {user_id}, New API Key: {api_key}")
-        
-        if key_id is not None:
-            return jsonify({'message': 'API key updated successfully', 'api_key': api_key, 'key_id': key_id})
-        else:
-            return jsonify({'error': 'Failed to update API key'}), 500
+        try:
+            # Generate new API key
+            api_key = generate_api_key(user_id)
+            key_id = upsert_api_key(user_id, api_key)
+            
+            # Update session with new API key
+            session['api_key'] = api_key
+            print(f"DEBUG - API Key Regenerated - User ID: {user_id}, New API Key: {api_key}")
+            
+            if key_id is not None:
+                return jsonify({
+                    'status': 'success', 
+                    'message': 'API key regenerated successfully',
+                    'data': {
+                        'api_key': api_key,
+                        'key_id': key_id
+                    }
+                })
+            else:
+                return jsonify({'status': 'error', 'message': 'Failed to regenerate API key'}), 500
+                
+        except Exception as e:
+            print(f"ERROR - API Key Regeneration failed: {str(e)}")
+            return jsonify({'status': 'error', 'message': 'Failed to regenerate API key'}), 500
 
 
 def is_platform_api_key(api_key, user_id):

@@ -7,7 +7,7 @@ search_bp = Blueprint('search_bp', __name__, url_prefix='/search')
 def token():
     if not session.get('logged_in'):
         return redirect(url_for('auth.login'))  # Fixed auth_bp.login to auth.login
-    return render_template('token.html')
+    return jsonify({'status': 'success', 'message': 'Token endpoint', 'user': session.get('user')})
 
 @search_bp.route('/')
 def search():
@@ -36,7 +36,7 @@ def search():
             'instrumenttype': result.instrumenttype,
             'tick_size': result.tick_size
         } for result in results]
-        return render_template('search.html', results=results_dicts)
+        return jsonify({'status': 'success', 'results': results_dicts})
 
 # New endpoint for autocomplete suggestions
 @search_bp.route('/suggestions')

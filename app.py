@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify
+from flask_cors import CORS
 from extensions import socketio  # Import SocketIO
 from limiter import limiter  # Import the Limiter instance
 from blueprints.auth import auth_bp 
@@ -23,23 +24,38 @@ from dotenv import load_dotenv
 import os
 
 
+# Load environment variables first
+load_dotenv()
+
 # Initialize Flask application
 app = Flask(__name__)
 app.debug = True
 
+# Set secret key and config BEFORE initializing extensions
+app.secret_key = os.getenv('APP_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
+# Session configuration for same-origin requests
+app.config['SESSION_COOKIE_SAMESITE'] = None  # Allow cross-site cookies
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = False  # Allow JavaScript access for debugging
+app.config['SESSION_COOKIE_NAME'] = 'session'  # Default session cookie name
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour session lifetime
+
+# Initialize CORS - Allow specific origins for development
+CORS(app, 
+     origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174",
+              "http://127.0.0.1:55235", "http://127.0.0.1:55236", "http://127.0.0.1:57228"],
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     expose_headers=["Content-Type", "Authorization"])
+
 # Initialize SocketIO
-socketio.init_app(app)  # Link SocketIO to the Flask app
+socketio.init_app(app, cors_allowed_origins="*")
 
 # Initialize Flask-Limiter with the app object - disabled for now
 # limiter.init_app(app)
-
-
-load_dotenv()
-
-
-# Environment variables
-app.secret_key = os.getenv('APP_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL') # Adjust the environment variable name as necessary
 
 
 # Initialize SQLAlchemy
@@ -58,9 +74,15 @@ app.register_blueprint(core_bp)  # Register the core blueprint
 app.register_blueprint(admin_bp)  # Admin blueprint enabled
 
 
+@app.route('/api/test', methods=['GET', 'OPTIONS'])
+def test_cors():
+    """Simple test endpoint to verify CORS is working"""
+    from flask import jsonify
+    return jsonify({"status": "success", "message": "CORS is working!"})
+
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('404.html'), 404
+    return jsonify({'status': 'error', 'message': 'Endpoint not found'}), 404
 
 
 

@@ -55,4 +55,4 @@ def tradingview_json():
         response.headers.add('Content-Type', 'application/json')
         return response
     
-    return render_template('tradingview.html', host=host)
+    return jsonify({'status': 'success', 'message': 'TradingView endpoint', 'host': host})
