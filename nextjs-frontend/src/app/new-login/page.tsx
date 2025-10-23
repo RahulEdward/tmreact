@@ -175,7 +175,7 @@ export default function NewLoginPage() {
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_user', JSON.stringify(data.user));
           localStorage.setItem('auth_session', JSON.stringify(data.session));
-          localStorage.setItem('auth_token', data.session?.session_token || '');
+          localStorage.setItem('auth_token', (data.session as any)?.session_token || '');
           console.log("Stored auth data in localStorage");
         }
         
