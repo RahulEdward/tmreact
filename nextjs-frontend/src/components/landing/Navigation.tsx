@@ -63,10 +63,10 @@ export function Navigation() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/new-login">Login</Link>
             </Button>
             <Button variant="gradient" asChild>
-              <Link href="/register">Get Started</Link>
+              <Link href="/new-register">Get Started</Link>
             </Button>
           </div>
 
@@ -95,10 +95,10 @@ export function Navigation() {
               ))}
               <div className="flex flex-col space-y-2 px-3 py-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Login</Link>
+                  <Link href="/new-login">Login</Link>
                 </Button>
                 <Button variant="gradient" size="sm" asChild>
-                  <Link href="/register">Get Started</Link>
+                  <Link href="/new-register">Get Started</Link>
                 </Button>
               </div>
             </div>

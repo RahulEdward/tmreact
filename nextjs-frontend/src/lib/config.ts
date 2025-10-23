@@ -40,3 +40,8 @@ export const config = {
 } as const;
 
 export type Config = typeof config;
+
+// Export API_BASE_URL for backward compatibility
+export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://tmreact-main-3wqau4ddc-rahuls-projects-4055f2e8.vercel.app'
+  : 'http://localhost:5000';

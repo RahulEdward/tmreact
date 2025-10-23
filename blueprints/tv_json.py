@@ -1,6 +1,7 @@
 # blueprints/tv_json.py
 
 from flask import Blueprint, render_template, request, jsonify, session, url_for, redirect
+from flask_cors import cross_origin
 from database.tv_search import search_symbols
 from database.auth_db import get_api_key
 from collections import OrderedDict
@@ -14,6 +15,7 @@ host = os.getenv('HOST_SERVER')
 tv_json_bp = Blueprint('tv_json_bp', __name__, url_prefix='/tradingview')
 
 @tv_json_bp.route('/', methods=['GET', 'POST'])
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], supports_credentials=True)
 def tradingview_json():
     
     if not session.get('logged_in'):
@@ -23,6 +25,7 @@ def tradingview_json():
         symbol_input = request.json.get('symbol')
         exchange = request.json.get('exchange')
         product = request.json.get('product')
+        pricetype = request.json.get('pricetype', 'MARKET')
         
         # Always get the latest API key from the database
         user_id = session.get('user_id')
@@ -44,11 +47,19 @@ def tradingview_json():
             ("symbol", symbol_data.symbol),
             ("action", "{{strategy.order.action}}"),
             ("exchange", symbol_data.exchange),
-            ("pricetype", "MARKET"),
+            ("pricetype", pricetype),
             ("product", product),
             ("quantity", "{{strategy.order.contracts}}"),
             ("position_size", "{{strategy.position_size}}"),
         ])
+        
+        # Add price field for limit orders
+        if pricetype in ['LIMIT', 'SL']:
+            json_data["price"] = "{{strategy.order.price}}"
+        
+        # Add trigger price for stop loss orders
+        if pricetype in ['SL', 'SL-M']:
+            json_data["trigger_price"] = "{{strategy.order.price}}"
         
         # JSONify the ordered dict
         response = jsonify(json_data)

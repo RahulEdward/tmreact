@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for
+from flask_cors import cross_origin
 from api.order_api import get_order_book, get_trade_book, get_positions, get_holdings
 from mapping.order_data import calculate_order_statistics, map_order_data,map_trade_data, map_position_data, map_portfolio_data, calculate_portfolio_statistics
 from mapping.order_data import transform_order_data, transform_tradebook_data, transform_positions_data, transform_holdings_data
@@ -6,6 +7,7 @@ from mapping.order_data import transform_order_data, transform_tradebook_data, t
 orders_bp = Blueprint('orders_bp', __name__, url_prefix='/')
 
 @orders_bp.route('/orderbook')
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], supports_credentials=True)
 def orderbook():
     try:
         print("DEBUG - Starting orderbook route handler")
@@ -15,17 +17,41 @@ def orderbook():
             return redirect(url_for('auth.login'))
         
         print("DEBUG - User is logged in, session data:", dict(session))
-        print("DEBUG - Calling get_order_book()")
         
-        order_data = get_order_book()
-        print("DEBUG - Order Book Response:", order_data)
-    
-        # Check if there's an error in the API response
-        if order_data.get('status') == 'error':
-            error_message = order_data.get('message', 'Unknown error occurred')
-            print(f"DEBUG - Order book API error: {error_message}")
-            # Instead of logging out, show an error message
-            return jsonify({'status': 'error', 'message': error_message, 'data': []})
+        # Check if this is a test user and return mock data
+        if session.get('user_id') == 'TEST123':
+            order_data = [
+                {
+                    'orderid': 'ORD001',
+                    'tradingsymbol': 'RELIANCE',
+                    'transactiontype': 'BUY',
+                    'quantity': 10,
+                    'price': 2450.50,
+                    'status': 'COMPLETE',
+                    'ordertime': '2024-01-15 10:30:00'
+                },
+                {
+                    'orderid': 'ORD002',
+                    'tradingsymbol': 'TCS',
+                    'transactiontype': 'SELL',
+                    'quantity': 5,
+                    'price': 3200.00,
+                    'status': 'PENDING',
+                    'ordertime': '2024-01-15 11:15:00'
+                }
+            ]
+            print("Returning mock orderbook data for test user")
+        else:
+            print("DEBUG - Calling get_order_book()")
+            order_data = get_order_book()
+            print("DEBUG - Order Book Response:", order_data)
+        
+            # Check if there's an error in the API response
+            if order_data.get('status') == 'error':
+                error_message = order_data.get('message', 'Unknown error occurred')
+                print(f"DEBUG - Order book API error: {error_message}")
+                # Instead of logging out, show an error message
+                return jsonify({'status': 'error', 'message': error_message, 'data': []})
 
         try:
             # Process the data if no errors
@@ -57,6 +83,7 @@ def orderbook():
 
 
 @orders_bp.route('/tradebook')
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], supports_credentials=True)
 def tradebook():
     # Check authentication first
     if not session.get('logged_in'):
@@ -67,10 +94,34 @@ def tradebook():
         return redirect(url_for('auth.login'))
     
     try:
-        tradebook_data = get_trade_book()
-        print(tradebook_data)
+        # Check if this is a test user and return mock data
+        if session.get('user_id') == 'TEST123':
+            tradebook_data = [
+                {
+                    'orderid': 'TRD001',
+                    'tradingsymbol': 'RELIANCE',
+                    'transactiontype': 'BUY',
+                    'quantity': 10,
+                    'price': 2450.50,
+                    'ordertime': '2024-01-15 10:30:00',
+                    'pnl': 247.50
+                },
+                {
+                    'orderid': 'TRD002',
+                    'tradingsymbol': 'INFY',
+                    'transactiontype': 'SELL',
+                    'quantity': 25,
+                    'price': 1485.50,
+                    'ordertime': '2024-01-15 09:45:00',
+                    'pnl': 887.50
+                }
+            ]
+            print("Returning mock tradebook data for test user")
+        else:
+            tradebook_data = get_trade_book()
+            print(tradebook_data)
 
-        # Check if there's an error in the API response
+            # Check if there's an error in the API response
         if tradebook_data.get('status') == 'error':
             if request.headers.get('Accept') == 'application/json' or request.is_json:
                 return jsonify({
@@ -105,6 +156,7 @@ def tradebook():
 
 
 @orders_bp.route('/positions')
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], supports_credentials=True)
 def positions():
     # Check authentication first
     if not session.get('logged_in'):
@@ -115,22 +167,44 @@ def positions():
         return redirect(url_for('auth.login'))
     
     try:
-        positions_data = get_positions()
-        print(positions_data)
+        # Check if this is a test user and return mock data
+        if session.get('user_id') == 'TEST123':
+            positions_data = [
+                {
+                    'symbol': 'RELIANCE',
+                    'quantity': 10,
+                    'average_price': 2450.50,
+                    'current_price': 2475.25,
+                    'pnl': 247.50,
+                    'pnl_percent': 1.01
+                },
+                {
+                    'symbol': 'TCS',
+                    'quantity': 5,
+                    'average_price': 3200.00,
+                    'current_price': 3180.75,
+                    'pnl': -96.25,
+                    'pnl_percent': -0.60
+                }
+            ]
+            print("Returning mock positions data for test user")
+        else:
+            positions_data = get_positions()
+            print(positions_data)
 
-        # Check if there's an error in the API response
-        if positions_data.get('status') == 'error':
-            if request.headers.get('Accept') == 'application/json' or request.is_json:
-                return jsonify({
-                    'status': 'error', 
-                    'message': positions_data.get('message', 'Failed to fetch positions')
-                }), 500
-            return redirect(url_for('auth.logout'))
+            # Check if there's an error in the API response
+            if positions_data.get('status') == 'error':
+                if request.headers.get('Accept') == 'application/json' or request.is_json:
+                    return jsonify({
+                        'status': 'error', 
+                        'message': positions_data.get('message', 'Failed to fetch positions')
+                    }), 500
+                return redirect(url_for('auth.logout'))
 
-        # Process the data
-        positions_data = map_position_data(positions_data)
-        positions_data = transform_positions_data(positions_data)
-        print(positions_data)
+            # Process the data
+            positions_data = map_position_data(positions_data)
+            positions_data = transform_positions_data(positions_data)
+            print(positions_data)
         
         # Check if request wants JSON (from React frontend)
         if request.headers.get('Accept') == 'application/json' or request.is_json:
@@ -152,6 +226,7 @@ def positions():
         return redirect(url_for('auth.logout'))
 
 @orders_bp.route('/holdings')
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], supports_credentials=True)
 def holdings():
     # Check authentication first
     if not session.get('logged_in'):
@@ -164,22 +239,44 @@ def holdings():
     try:
         print("DEBUG - Starting holdings route handler")
         print("DEBUG - User is logged in, session data:", dict(session))
-        print("DEBUG - Calling get_holdings()")
         
-        holdings_data = get_holdings()
-        print("DEBUG - Holdings Response:", holdings_data)
-        
-        # Check if there's an error in the API response
-        if holdings_data.get('status') == 'error':
-            error_message = holdings_data.get('message', 'Unknown error occurred')
-            print(f"DEBUG - Holdings API error: {error_message}")
+        # Check if this is a test user and return mock data
+        if session.get('user_id') == 'TEST123':
+            holdings_data = [
+                {
+                    'symbol': 'INFY',
+                    'quantity': 25,
+                    'average_price': 1450.00,
+                    'current_price': 1485.50,
+                    'pnl': 887.50,
+                    'pnl_percent': 2.45
+                },
+                {
+                    'symbol': 'HDFC',
+                    'quantity': 15,
+                    'average_price': 1650.25,
+                    'current_price': 1625.75,
+                    'pnl': -367.50,
+                    'pnl_percent': -1.48
+                }
+            ]
+            print("Returning mock holdings data for test user")
+        else:
+            print("DEBUG - Calling get_holdings()")
+            holdings_data = get_holdings()
+            print("DEBUG - Holdings Response:", holdings_data)
             
-            if request.headers.get('Accept') == 'application/json' or request.is_json:
-                return jsonify({
-                    'status': 'error', 
-                    'message': error_message
-                }), 500
-            return jsonify({'status': 'error', 'message': error_message, 'data': []})
+            # Check if there's an error in the API response
+            if holdings_data.get('status') == 'error':
+                error_message = holdings_data.get('message', 'Unknown error occurred')
+                print(f"DEBUG - Holdings API error: {error_message}")
+                
+                if request.headers.get('Accept') == 'application/json' or request.is_json:
+                    return jsonify({
+                        'status': 'error', 
+                        'message': error_message
+                    }), 500
+                return jsonify({'status': 'error', 'message': error_message, 'data': []})
         
         try:
             # Process the data if no errors

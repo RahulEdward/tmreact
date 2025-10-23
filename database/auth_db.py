@@ -1,6 +1,8 @@
 # database/auth_db.py
 
 import os
+import secrets
+import string
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, UniqueConstraint
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -11,7 +13,11 @@ from dotenv import load_dotenv
 from database.db import db 
 from cachetools import TTLCache
 import traceback
-from datetime import datetime, timedelta  # <-- FIX: Import timedelta
+from datetime import datetime, timedelta
+from flask_bcrypt import Bcrypt
+
+# Initialize Bcrypt for password hashing
+bcrypt = Bcrypt()
 
 # Define a cache for the auth tokens and api_key with a max size and a 30-second TTL
 auth_cache = TTLCache(maxsize=1024, ttl=30)
@@ -21,7 +27,12 @@ load_dotenv()
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
-    DATABASE_URL = 'sqlite:///openalgo.db'  # Default fallback
+    # Always use local db for development, /tmp only for Vercel production
+    if os.getenv('VERCEL') or os.getenv('VERCEL_ENV'):
+        DATABASE_URL = 'sqlite:///tmp/secueralgo.db'
+    else:
+        # For local development, use the existing database
+        DATABASE_URL = 'sqlite:///db/secueralgo.db'
     print(f"WARNING: DATABASE_URL not found in .env, using default: {DATABASE_URL}")
 
 try:
@@ -71,7 +82,57 @@ class ApiKeys(Base):
     api_key = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=func.now())
 
-# Users table for multi-user support
+# New User Authentication System Models
+
+# Users table for the new authentication system
+class NewUsers(Base):
+    __tablename__ = 'new_users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), unique=True, nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
+# User Sessions table for session management
+class UserSessions(Base):
+    __tablename__ = 'user_sessions'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    session_token = Column(String(255), unique=True, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+
+# Broker Connections table for managing broker accounts
+class BrokerConnections(Base):
+    __tablename__ = 'broker_connections'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    broker_type = Column(String(50), nullable=False)
+    broker_user_id = Column(String(100), nullable=False)
+    display_name = Column(String(100))
+    is_active = Column(Boolean, default=True)
+    connected_at = Column(DateTime(timezone=True), default=func.now())
+    last_sync_at = Column(DateTime(timezone=True))
+    # Encrypted credential fields
+    encrypted_client_id = Column(Text)  # Encrypted client ID
+    encrypted_api_key = Column(Text)    # Encrypted API key
+    encrypted_pin = Column(Text)        # Encrypted PIN
+
+# Broker Tokens table for storing broker authentication tokens
+class BrokerTokens(Base):
+    __tablename__ = 'broker_tokens'
+    id = Column(Integer, primary_key=True)
+    connection_id = Column(Integer, nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text)
+    feed_token = Column(Text)
+    expires_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
+# Legacy Users table for multi-user support (keeping for backward compatibility)
 class Users(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -552,3 +613,345 @@ def get_auth_tokens(username):
         print(f"ERROR getting auth tokens: {str(e)}")
         traceback.print_exc()
         return {"status": "error", "message": f"Database error: {str(e)}"}
+
+# New User Authentication System Functions
+
+def create_new_user(username, email, password_hash):
+    """Create a new user in the new authentication system"""
+    if not username or not email or not password_hash:
+        print("ERROR in create_new_user: Missing required fields")
+        return {"status": "error", "message": "All fields are required"}
+    
+    try:
+        # Check if username already exists
+        existing_user = NewUsers.query.filter_by(username=username).first()
+        if existing_user:
+            print(f"ERROR in create_new_user: Username {username} already exists")
+            return {"status": "error", "message": "Username already exists"}
+            
+        # Check if email already exists
+        existing_email = NewUsers.query.filter_by(email=email).first()
+        if existing_email:
+            print(f"ERROR in create_new_user: Email {email} already exists")
+            return {"status": "error", "message": "Email already exists"}
+        
+        # Create new user
+        user = NewUsers(username=username, email=email, password_hash=password_hash)
+        db_session.add(user)
+        db_session.commit()
+        
+        print(f"Successfully created new user: {username}")
+        return {"status": "success", "message": "User created successfully", "user_id": user.id}
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR creating new user: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def get_new_user_by_email(email):
+    """Get user details by email from new users table"""
+    if not email:
+        print("ERROR in get_new_user_by_email: email is empty")
+        return None
+        
+    try:
+        user = NewUsers.query.filter_by(email=email).first()
+        if user:
+            print(f"Successfully fetched user by email: {email}")
+            return user
+        else:
+            print(f"User not found with email: {email}")
+            return None
+    except Exception as e:
+        print(f"ERROR getting user by email: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def get_new_user_by_username(username):
+    """Get user details by username from new users table"""
+    if not username:
+        print("ERROR in get_new_user_by_username: username is empty")
+        return None
+        
+    try:
+        user = NewUsers.query.filter_by(username=username).first()
+        if user:
+            print(f"Successfully fetched user by username: {username}")
+            return user
+        else:
+            print(f"User not found with username: {username}")
+            return None
+    except Exception as e:
+        print(f"ERROR getting user by username: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def get_new_user_by_id(user_id):
+    """Get user details by ID from new users table"""
+    if not user_id:
+        print("ERROR in get_new_user_by_id: user_id is empty")
+        return None
+        
+    try:
+        user = NewUsers.query.filter_by(id=user_id).first()
+        if user:
+            print(f"Successfully fetched user by ID: {user_id}")
+            return user
+        else:
+            print(f"User not found with ID: {user_id}")
+            return None
+    except Exception as e:
+        print(f"ERROR getting user by ID: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def create_user_session(user_id, session_token, expires_at):
+    """Create a new user session"""
+    if not user_id or not session_token or not expires_at:
+        print("ERROR in create_user_session: Missing required fields")
+        return {"status": "error", "message": "All fields are required"}
+    
+    try:
+        # Remove any existing sessions for this user
+        existing_sessions = UserSessions.query.filter_by(user_id=user_id).all()
+        for session in existing_sessions:
+            db_session.delete(session)
+        
+        # Create new session
+        session = UserSessions(user_id=user_id, session_token=session_token, expires_at=expires_at)
+        db_session.add(session)
+        db_session.commit()
+        
+        print(f"Successfully created session for user ID: {user_id}")
+        return {"status": "success", "message": "Session created successfully"}
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR creating user session: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def get_user_session(session_token):
+    """Get user session by token"""
+    if not session_token:
+        print("ERROR in get_user_session: session_token is empty")
+        return None
+        
+    try:
+        session = UserSessions.query.filter_by(session_token=session_token).first()
+        if session:
+            # Check if session is expired
+            if session.expires_at > datetime.now():
+                print(f"Successfully fetched valid session for token")
+                return session
+            else:
+                print(f"Session expired, removing from database")
+                db_session.delete(session)
+                db_session.commit()
+                return None
+        else:
+            print(f"Session not found for token")
+            return None
+    except Exception as e:
+        print(f"ERROR getting user session: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def delete_user_session(session_token):
+    """Delete a user session"""
+    if not session_token:
+        print("ERROR in delete_user_session: session_token is empty")
+        return {"status": "error", "message": "Session token is required"}
+    
+    try:
+        session = UserSessions.query.filter_by(session_token=session_token).first()
+        if session:
+            db_session.delete(session)
+            db_session.commit()
+            print(f"Successfully deleted session")
+            return {"status": "success", "message": "Session deleted successfully"}
+        else:
+            print(f"Session not found for deletion")
+            return {"status": "error", "message": "Session not found"}
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR deleting user session: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def create_broker_connection(user_id, broker_type, broker_user_id, display_name=None, encrypted_credentials=None):
+    """Create a new broker connection with encrypted credentials"""
+    if not user_id or not broker_type or not broker_user_id:
+        print("ERROR in create_broker_connection: Missing required fields")
+        return {"status": "error", "message": "User ID, broker type, and broker user ID are required"}
+    
+    try:
+        # Check if connection already exists
+        existing_connection = BrokerConnections.query.filter_by(
+            user_id=user_id, 
+            broker_type=broker_type, 
+            broker_user_id=broker_user_id
+        ).first()
+        
+        if existing_connection:
+            print(f"Broker connection already exists for user {user_id}, broker {broker_type}")
+            return {"status": "error", "message": "Broker connection already exists"}
+        
+        # Create new connection with encrypted credentials
+        connection = BrokerConnections(
+            user_id=user_id,
+            broker_type=broker_type,
+            broker_user_id=broker_user_id,
+            display_name=display_name or f"{broker_type} - {broker_user_id}",
+            encrypted_client_id=encrypted_credentials.get('client_id') if encrypted_credentials else None,
+            encrypted_api_key=encrypted_credentials.get('api_key') if encrypted_credentials else None,
+            encrypted_pin=encrypted_credentials.get('pin') if encrypted_credentials else None
+        )
+        db_session.add(connection)
+        db_session.commit()
+        
+        print(f"Successfully created broker connection with encrypted credentials for user {user_id}")
+        return {"status": "success", "message": "Broker connection created successfully", "connection_id": connection.id}
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR creating broker connection: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def get_user_broker_connections(user_id):
+    """Get all broker connections for a user"""
+    if not user_id:
+        print("ERROR in get_user_broker_connections: user_id is empty")
+        return []
+        
+    try:
+        connections = BrokerConnections.query.filter_by(user_id=user_id, is_active=True).all()
+        print(f"Successfully fetched {len(connections)} broker connections for user {user_id}")
+        return connections
+    except Exception as e:
+        print(f"ERROR getting user broker connections: {str(e)}")
+        traceback.print_exc()
+        return []
+
+def store_broker_tokens(connection_id, access_token, refresh_token=None, feed_token=None, expires_at=None):
+    """Store or update broker tokens for a connection"""
+    if not connection_id or not access_token:
+        print("ERROR in store_broker_tokens: Missing required fields")
+        return {"status": "error", "message": "Connection ID and access token are required"}
+    
+    try:
+        # Check if tokens already exist for this connection
+        existing_tokens = BrokerTokens.query.filter_by(connection_id=connection_id).first()
+        
+        if existing_tokens:
+            # Update existing tokens
+            existing_tokens.access_token = access_token
+            existing_tokens.refresh_token = refresh_token
+            existing_tokens.feed_token = feed_token
+            existing_tokens.expires_at = expires_at
+            existing_tokens.updated_at = datetime.now()
+            print(f"Updated broker tokens for connection {connection_id}")
+        else:
+            # Create new token record
+            tokens = BrokerTokens(
+                connection_id=connection_id,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                feed_token=feed_token,
+                expires_at=expires_at
+            )
+            db_session.add(tokens)
+            print(f"Created new broker tokens for connection {connection_id}")
+        
+        db_session.commit()
+        return {"status": "success", "message": "Broker tokens stored successfully"}
+    except Exception as e:
+        db_session.rollback()
+        print(f"ERROR storing broker tokens: {str(e)}")
+        traceback.print_exc()
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+
+def get_broker_tokens(connection_id):
+    """Get broker tokens for a connection"""
+    if not connection_id:
+        print("ERROR in get_broker_tokens: connection_id is empty")
+        return None
+        
+    try:
+        tokens = BrokerTokens.query.filter_by(connection_id=connection_id).first()
+        if tokens:
+            print(f"Successfully fetched broker tokens for connection {connection_id}")
+            return tokens
+        else:
+            print(f"No broker tokens found for connection {connection_id}")
+            return None
+    except Exception as e:
+        print(f"ERROR getting broker tokens: {str(e)}")
+        traceback.print_exc()
+        return None
+
+# Password and Session Utility Functions
+
+def hash_password(password):
+    """Hash a password using bcrypt"""
+    try:
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        password_hash = bcrypt.generate_password_hash(password, rounds=12)
+        return password_hash.decode('utf-8')
+    except Exception as e:
+        print(f"ERROR hashing password: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def verify_password(password, password_hash):
+    """Verify a password against its hash"""
+    try:
+        if not password_hash:
+            print("ERROR: password_hash is None or empty")
+            return False
+            
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+            
+        if isinstance(password_hash, str):
+            password_hash = password_hash.encode('utf-8')
+            
+        return bcrypt.check_password_hash(password_hash, password)
+    except Exception as e:
+        print(f"ERROR verifying password: {str(e)}")
+        traceback.print_exc()
+        return False
+
+def generate_session_token():
+    """Generate a secure random session token"""
+    try:
+        # Generate a 256-bit (32 byte) random token
+        token = secrets.token_urlsafe(32)
+        return token
+    except Exception as e:
+        print(f"ERROR generating session token: {str(e)}")
+        traceback.print_exc()
+        return None
+
+def validate_password_strength(password):
+    """Validate password meets security requirements"""
+    if not password:
+        return {"valid": False, "message": "Password is required"}
+    
+    if len(password) < 8:
+        return {"valid": False, "message": "Password must be at least 8 characters long"}
+    
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    
+    if not has_upper:
+        return {"valid": False, "message": "Password must contain at least one uppercase letter"}
+    
+    if not has_lower:
+        return {"valid": False, "message": "Password must contain at least one lowercase letter"}
+    
+    if not has_digit:
+        return {"valid": False, "message": "Password must contain at least one number"}
+    
+    return {"valid": True, "message": "Password meets security requirements"}

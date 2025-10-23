@@ -43,7 +43,7 @@ export function Hero() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
           <Button size="lg" variant="gradient" asChild>
-            <Link href="/register">
+            <Link href="/new-register">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
