@@ -150,10 +150,11 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
+        return True
     except Exception as e:
         print(f"ERROR initializing database: {str(e)}")
         traceback.print_exc()
-        raise
+        return False
 
 def upsert_auth(name, auth_token, revoke=False):
     """Store or update authentication token for a user"""
