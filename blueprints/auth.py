@@ -512,7 +512,7 @@ def new_register():
         }), 500
 
 @auth_bp.route('/new/register/validate', methods=['POST', 'OPTIONS'])
-@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:65028', 'http://127.0.0.1:55235', 'http://127.0.0.1:55236', 'http://localhost:55235', 'http://localhost:55236'], supports_credentials=True)
+@cross_origin(origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:65028', 'http://127.0.0.1:55235', 'http://127.0.0.1:55236', 'http://localhost:55235', 'http://localhost:55236', 'https://nextjs-frontend-aqwhl5iof-rahuls-projects-4055f2e8.vercel.app', 'https://nextjs-frontend-9tjtcg557-rahuls-projects-4055f2e8.vercel.app', 'https://nextjs-frontend-qrfnj2a36-rahuls-projects-4055f2e8.vercel.app'], supports_credentials=True)
 def validate_registration():
     """
     Validate registration data without creating a user
